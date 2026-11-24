@@ -1,0 +1,98 @@
+name: build-gate-dylib
+
+# 只负责编出 gate.dylib（53KB 左右），注入 IPA 在本地做。
+# 这样仓库里不需要放 18MB 的 IPA，上传/推送都很轻。
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "卡密服务地址（https://... 或 http://内网IP，不带结尾斜杠）"
+        required: false
+        type: string
+      bundle_ids:
+        description: "允许的 Bundle ID（逗号分隔）"
+        required: false
+        default: "com.axp.promax,com.apple.music"
+        type: string
+  push:
+    paths:
+      - "tweak/**"
+      - "patch/**"
+      - ".github/workflows/build-gate-dylib.yml"
+      - "in/server_url.txt"
+
+jobs:
+  build:
+    runs-on: macos-14
+    env:
+      THEOS: ${{ github.workspace }}/theos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 解析服务地址
+        run: |
+          set -e
+          URL="${{ inputs.server_url }}"
+          if [ -z "$URL" ] && [ -n "${{ vars.AXP_SERVER_URL }}" ]; then URL="${{ vars.AXP_SERVER_URL }}"; fi
+          if [ -z "$URL" ] && [ -f in/server_url.txt ]; then URL="$(head -n1 in/server_url.txt | tr -d '\r\n ')"; fi
+          if [ -z "$URL" ]; then echo "缺少 server_url（输入 / 仓库变量 / in/server_url.txt）"; exit 1; fi
+          echo "SERVER_URL=$URL" >> $GITHUB_ENV
+          echo "使用服务地址: $URL"
+
+      - name: 准备 Theos 工具链
+        run: |
+          set -e
+          brew install ldid xz make || true
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          mkdir -p "$THEOS/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks || true
+          if [ -d /tmp/sdks ]; then cp -R /tmp/sdks/*.sdk "$THEOS/sdks/" 2>/dev/null || true; fi
+          ls "$THEOS/sdks" || true
+          echo "$THEOS/bin" >> $GITHUB_PATH
+
+      - name: 生成 axp_config.h
+        run: |
+          set -e
+          python3 -m pip install --quiet cryptography
+          python3 patch/configure.py --server "$SERVER_URL" \
+            --pubkey-from server/keys/public_b64.txt \
+            --bundle-ids "${{ inputs.bundle_ids || 'com.axp.promax,com.apple.music' }}"
+
+      - name: 编译 gate.dylib（Apple clang，真 arm64e）
+        run: |
+          set -e
+          cd tweak
+          make clean || true
+          make FINALPACKAGE=1
+          DYLIB=$(find . -name 'gate.dylib' | head -n1)
+          [ -n "$DYLIB" ] || { echo "没有产出 gate.dylib"; exit 1; }
+          echo "built: $DYLIB"
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          cp "$DYLIB" "$GITHUB_WORKSPACE/out/gate.dylib"
+
+      - name: 校验架构与配置
+        run: |
+          set -e
+          cd out
+          lipo -info gate.dylib || true
+          python3 - <<'PY'
+          import struct, pathlib, re
+          d = pathlib.Path("gate.dylib").read_bytes()
+          cputype, cpusub = struct.unpack("<II", d[4:12])
+          print(f"cputype=0x{cputype:x} cpusubtype=0x{cpusub:x}")
+          assert cputype == 0x0100000c, "不是 arm64 家族"
+          print("arm64e =", "YES" if (cpusub and (cpusub & 2)) else "NO（普通 arm64）")
+          assert b"MIIBCgKCAQE" in d, "公钥没编进去"
+          assert b"192.168" in d or b"https://" in d, "服务地址没编进去"
+          print("公钥/地址 已编入 OK")
+          PY
+          ldid -S gate.dylib || true
+          shasum -a 256 gate.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-dylib
+          path: out/gate.dylib
+          if-no-files-found: error

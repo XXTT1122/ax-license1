@@ -1,0 +1,17 @@
+// axp_config.h —— 由 patch/configure.py 自动生成，请勿手改（改完会被覆盖）
+// 生成命令：
+//   python patch/configure.py --server https://你的域名 \
+//          --pubkey-from server/keys/public_b64.txt
+//
+// 本文件已被 .gitignore 忽略；CI 会在编译前重新生成。
+
+#ifndef AXP_CONFIG_H
+#define AXP_CONFIG_H
+
+#define AXP_SERVER_URL      @"https://your.domain.com"
+#define AXP_PUBLIC_KEY_B64  @""
+#define AXP_APP_KEY         @"ax_pro_max"
+#define AXP_BUNDLE_IDS      @[ @"com.apple.music", @"com.ax.promax" ]
+#define AXP_DISABLE_AX_INTERCEPTOR 0
+
+#endif

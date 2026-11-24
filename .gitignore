@@ -1,0 +1,18 @@
+# 私钥与数据库不入库
+server/keys/private.pem
+server/keys/*.pem
+tweak/axp_config.h
+tweak/.theos/
+server/axp.sqlite3
+server/axp.sqlite3-*
+cards*.csv
+cards_export.csv
+
+# 待注入的 IPA 与产物
+in/*.ipa
+out/
+*.ipa
+
+# Python
+__pycache__/
+*.pyc
