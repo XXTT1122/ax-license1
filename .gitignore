@@ -16,3 +16,7 @@ out/
 # Python
 __pycache__/
 *.pyc
+
+server/srv*.out
+server/srv*.err
+__pycache__/
