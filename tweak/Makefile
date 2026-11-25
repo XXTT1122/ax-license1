@@ -7,6 +7,6 @@ LIBRARY_NAME = gate
 gate_FILES = gate.m
 gate_FRAMEWORKS = UIKit Foundation Security
 gate_CFLAGS = -fobjc-arc -fmodules -Wno-deprecated-declarations
-gate_LDFLAGS = -undefined dynamic_lookup
+gate_LDFLAGS = -undefined dynamic_lookup -not_for_dyld_shared_cache
 
 include $(THEOS_MAKE_PATH)/library.mk
