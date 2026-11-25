@@ -44,7 +44,7 @@ def build_body(resp: dict, fmt: str) -> tuple[bytes, str]:
         <signature>
     任何以 AXNET-V1 开头的三行文本都能被它按行解析。
     """
-    if fmt == "json":
+    if fmt == "json" or "payload_raw" not in resp or "signature" not in resp:
         return (json.dumps(resp, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
                 "application/json; charset=utf-8")
     body = "AXNET-V1\n%s\n%s" % (resp["payload_raw"], resp["signature"])
