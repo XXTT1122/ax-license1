@@ -15,7 +15,6 @@ jobs:
       - name: build
         run: |
           export THEOS=$HOME/theos
-          python3 -m pip install --quiet cryptography
           python3 patch/configure.py --server "$(cat in/server_url.txt)" --pubkey-from server/keys/public_b64.txt
           cd tweak
           make FINALPACKAGE=1
