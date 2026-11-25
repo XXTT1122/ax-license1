@@ -111,7 +111,7 @@ static BOOL OpenTargetApp(void) {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    LOG(@"界面加载，deviceId=%@", DeviceID().substringToIndex(12));
+    NSString *devId = DeviceID();\n    LOG(@"界面加载，deviceId=%@", [devId substringToIndex:MIN(12, devId.length)]);
     self.view.backgroundColor = [UIColor systemBackgroundColor];
 
     CGFloat W = self.view.bounds.size.width;
