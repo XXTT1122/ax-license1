@@ -1,0 +1,30 @@
+name: b
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain
+        run: |
+          brew install ldid make xz || true
+          git clone --recursive --depth 1 https://github.com/theos/theos.git $HOME/theos
+          mkdir -p $HOME/theos/sdks
+          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks || true
+          cp -R /tmp/sdks/*.sdk $HOME/theos/sdks/ 2>/dev/null || true
+      - name: build
+        run: |
+          export THEOS=$HOME/theos
+          python3 -m pip install --quiet cryptography
+          python3 patch/configure.py --server "$(cat in/server_url.txt)" --pubkey-from server/keys/public_b64.txt
+          cd tweak
+          make FINALPACKAGE=1
+          mkdir -p ../out
+          cp "$(find . -name gate.dylib | head -1)" ../out/gate.dylib
+          lipo -info ../out/gate.dylib
+          ldid -S ../out/gate.dylib
+          shasum -a 256 ../out/gate.dylib
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-dylib
+          path: out/gate.dylib
