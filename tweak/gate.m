@@ -42,6 +42,23 @@ static NSArray<NSString *> *AXPAllowedBundleIDs(void) { return AXP_BUNDLE_IDS; }
 static const BOOL kAXPDisableAXInterceptor = (AXP_DISABLE_AX_INTERCEPTOR != 0);
 // 时钟回拨容差（秒）：本地时间比"见过的最大时间"倒退超过该值即判定作弊
 static const NSTimeInterval kAXPClockTolerance = 300;
+// ---------- 自诊断：日志写入 <容器>/Documents/axp.log（可用「文件」App 取出） ----------
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+static void AXP_LOG(const char *fmt, ...) {
+    const char *home = getenv("HOME");
+    if (!home) return;
+    char path[512];
+    snprintf(path, sizeof(path), "%s/Documents/axp.log", home);
+    FILE *fp = fopen(path, "a");
+    if (!fp) return;
+    va_list ap; va_start(ap, fmt);
+    vfprintf(fp, fmt, ap);
+    va_end(ap);
+    fprintf(fp, "\n");
+    fclose(fp);
+}
 // =====================================================================================================
 
 static NSString *const kAXPLicenseKey = @"AXP.License.v3";
@@ -443,7 +460,9 @@ static BOOL AXPLicenseStillValid(void) {
 }
 
 - (void)presentIfNeeded {
+    AXP_LOG("[5] 检查本地缓存授权");
     if (AXPLicenseStillValid()) {
+        AXP_LOG("[5a] 缓存有效，静默续期");
         // 已授权：后台静默续期，不影响使用
         [AXPLicenseClient refreshWithCompletion:^(BOOL ok) {
             if (!ok) dispatch_async(dispatch_get_main_queue(), ^{ [self present]; });
@@ -456,6 +475,7 @@ static BOOL AXPLicenseStillValid(void) {
 - (void)present {
     if (self.window) return;
     dispatch_async(dispatch_get_main_queue(), ^{
+        AXP_LOG("[6] 开始构建激活窗口");
         UIWindowScene *scene = nil;
         for (UIScene *s in UIApplication.sharedApplication.connectedScenes) {
             if ([s isKindOfClass:[UIWindowScene class]]) { scene = (UIWindowScene *)s; break; }
@@ -480,6 +500,7 @@ static BOOL AXPLicenseStillValid(void) {
         w.alpha = 1;
         [w makeKeyAndVisible];
         self.window = w;
+        AXP_LOG("[7] 激活窗口已显示");
     });
 }
 
@@ -503,10 +524,12 @@ static void AXPKillFakeServerIfNeeded(void) {
 
 __attribute__((constructor))
 static void AXPGateInit(void) {
+    AXP_LOG("[1] constructor 进入");
     @autoreleasepool {
         NSString *bid = [[NSBundle mainBundle] bundleIdentifier] ?: @"";
+        AXP_LOG("[2] bundleIdentifier=%s", [bid ?: @"" UTF8String] ?: "?");
         if (![AXPAllowedBundleIDs() containsObject:bid]) {
-            NSLog(@"[AXP] bundle id mismatch: %@", bid);
+            AXP_LOG("[2b] bundle id 不在白名单，退出");
             return;
         }
         AXPKillFakeServerIfNeeded();
@@ -515,7 +538,9 @@ static void AXPGateInit(void) {
         void (^kick)(NSNotification *) = ^(NSNotification *note) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
+                AXP_LOG("[3] 启动通知触发，开始判断");
                 [[AXPGate shared] presentIfNeeded];
+                AXP_LOG("[4] presentIfNeeded 返回");
             });
         };
         NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
