@@ -520,8 +520,6 @@ static void AXPGateInit(void) {
         };
         NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
         // WillFinish 先挂一次（越早越好），DidFinish 再兜一次（防错过）
-        [nc addObserverForName:UIApplicationWillFinishLaunchingNotification
-                        object:nil queue:[NSOperationQueue mainQueue] usingBlock:kick];
         [nc addObserverForName:UIApplicationDidFinishLaunchingNotification
                         object:nil queue:[NSOperationQueue mainQueue] usingBlock:kick];
     }
