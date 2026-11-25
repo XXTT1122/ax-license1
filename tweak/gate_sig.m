@@ -55,8 +55,7 @@ static void *bg_thread(void *arg) {
     (void)arg;
     for (int i = 1; i <= 200; i++) {
         usleep(100000);
-        P("[BG %d] 后台心跳 %.1f 秒 (主线程状态 id=%d)", i, i * 0.1,
-          (int)[UIApplication sharedApplication].applicationState);
+        P("[BG %d] 后台心跳 %.1f 秒", i, i * 0.1);
     }
     return NULL;
 }
