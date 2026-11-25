@@ -44,6 +44,10 @@ static void LOG(NSString *fmt, ...) {
     }
 }
 
+static NSString *RawIDFV(void) {
+    return [[[UIDevice currentDevice] identifierForVendor] UUIDString] ?: @"unknown";
+}
+
 static NSString *DeviceID(void) {
     NSString *idfv = [[[UIDevice currentDevice] identifierForVendor] UUIDString] ?: @"unknown";
     NSData *d = [[NSString stringWithFormat:@"axplauncher|%@", idfv] dataUsingEncoding:NSUTF8StringEncoding];
@@ -170,6 +174,14 @@ static BOOL OpenTargetApp(void) {
     tip.numberOfLines = 0;
     tip.text = @"一台设备仅限激活一台卡密\n激活后请从本页面启动使用";
     [self.view addSubview:tip];
+
+    UILabel *rawIdfvLabel = [[UILabel alloc] initWithFrame:CGRectMake(x, self.view.bounds.size.height - 155, w, 52)];
+    rawIdfvLabel.font = [UIFont monospacedSystemFontOfSize:11 weight:UIFontWeightRegular];
+    rawIdfvLabel.textColor = [UIColor labelColor];
+    rawIdfvLabel.textAlignment = NSTextAlignmentCenter;
+    rawIdfvLabel.numberOfLines = 2;
+    rawIdfvLabel.text = [NSString stringWithFormat:@"\u8bbe\u5907 IDFV\uff08\u53d1\u7ed9\u5356\u5bb6\uff09\n%@", RawIDFV()];
+    [self.view addSubview:rawIdfvLabel];
 
     [self refreshState];
 }
@@ -304,6 +316,7 @@ static BOOL OpenTargetApp(void) {
 @implementation AXPAppDelegate
 - (BOOL)application:(UIApplication *)app didFinishLaunchingWithOptions:(NSDictionary *)opts {
     LOG(@"=== 启动器启动 ===");
+    LOG(@"原始 IDFV = %@", RawIDFV());
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.rootViewController = [[AXPLauncherVC alloc] init];
     [self.window makeKeyAndVisible];
