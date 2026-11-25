@@ -1,0 +1,46 @@
+name: launcher-ipa
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "launcher/**"
+      - ".github/workflows/build-launcher.yml"
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: toolchain
+        run: |
+          brew install ldid >/dev/null 2>&1 || true
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: build
+        run: |
+          set -e
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          mkdir -p out/Payload
+          cp -R launcher/AXLauncher.app out/Payload/ 2>/dev/null || true
+          mkdir -p out/Payload/AXLauncher.app
+          cp launcher/Info.plist out/Payload/AXLauncher.app/Info.plist
+          xcrun --sdk iphoneos clang \
+            -arch arm64 \
+            -mios-version-min=15.0 \
+            -isysroot "$SDK" \
+            -fobjc-arc \
+            -O2 \
+            -framework UIKit -framework Foundation \
+            launcher/main.m \
+            -o out/Payload/AXLauncher.app/Launcher
+          ldid -S out/Payload/AXLauncher.app/Launcher
+          cd out
+          zip -qry AX-Launcher.ipa Payload
+          ls -l AX-Launcher.ipa
+          shasum -a 256 AX-Launcher.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: launcher-ipa
+          path: out/AX-Launcher.ipa

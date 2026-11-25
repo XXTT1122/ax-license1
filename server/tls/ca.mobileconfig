@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadCertificateFileName</key>
+			<string>ca.cer</string>
+			<key>PayloadContent</key>
+			<data>
+			MIIC+zCCAeOgAwIBAgIULCBni40mm+Ohx3WJxdbs7GpaM9YwDQYJ
+			KoZIhvcNAQELBQAwJTEVMBMGA1UEAwwMQVhQIExvY2FsIENBMQww
+			CgYDVQQKDANBWFAwHhcNMjYxMTI0MDMyNjQxWhcNMzYxMTIyMDMy
+			NjQxWjAlMRUwEwYDVQQDDAxBWFAgTG9jYWwgQ0ExDDAKBgNVBAoM
+			A0FYUDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJWF
+			/HD2X6kIcOBwMS2bmJd+gUS2mZKlB49tT45oO8BBuevux/dHsJoD
+			YfaBti4G70/3ZUVLCmZakRLdrdxAO3o3IiSHYKS1VM/ngYNvnxmq
+			xB1QKmmeU4utfsvpJF6EeIZIRnbmqrLuCluYqj1YsHAw9fSsPFRb
+			opJA9dNxbXh6GjTqKylRd3hr4TXYMVXmpZI7wu+zWEvtBvV9ThfC
+			5fBtgKbsiLrUOOm/oT1Ph9QuwWn6BxC05JasoukIdZq3X3hBFTJj
+			7xoQcsBjH9g6HGDZ7Z6FZQYCilSaOnHiotmItkDEcFwgUnaEqf4A
+			vbtAfqyehOCJ0MRkJbF1+sJk3U0CAwEAAaMjMCEwDwYDVR0TAQH/
+			BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAYYwDQYJKoZIhvcNAQELBQAD
+			ggEBADWQ1loRew4ZUsK6AloSP1krVs9tHNUp7ReBYrfuhKzk77rn
+			7fP96OaDGOnm48iFg0YKGtUZqzLGpJBgv1pJKU+LalEqQTIWQ93m
+			n24YKlWQFfMKkdnJnivUww7feMqmHTdclN149q7CexmItiiHQwyr
+			dtnMupRoJUz7umfwoqixGwCjmH87yj61OQbpbS3LH46kivN/u1i/
+			oTAPlyxwlmSXXKCksW83nzORaZ7K7Xf2q9sVi7Q9HlejHl8YSWl6
+			0TmiJqeEEBJEDUtDb9t6MPFT/okRXehZBxAwiNpZjfVh9mRvmXuU
+			g0kfgUgrDAVp+ZNuppLwGcgBZY2H2K8lwGs=
+			</data>
+			<key>PayloadDescription</key>
+			<string>AXP 本地根证书</string>
+			<key>PayloadDisplayName</key>
+			<string>AXP Local CA</string>
+			<key>PayloadIdentifier</key>
+			<string>com.axp.localca.root</string>
+			<key>PayloadType</key>
+			<string>com.apple.security.root</string>
+			<key>PayloadUUID</key>
+			<string>D12AABE3-7773-4CE2-A1FD-BF08FF81800E</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>PayloadDescription</key>
+	<string>安装后请到「设置-通用-关于本机-证书信任设置」开启完全信任</string>
+	<key>PayloadDisplayName</key>
+	<string>AXP Local CA</string>
+	<key>PayloadIdentifier</key>
+	<string>com.axp.localca</string>
+	<key>PayloadOrganization</key>
+	<string>AXP</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>64E8F615-F6EE-4465-9DAF-EB4B12C9117F</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadDescription</key>
+			<string>安装后会把本机 UDID 发送给授权服务器，用于绑定你的设备</string>
+			<key>PayloadDisplayName</key>
+			<string>AX Pro Max 设备登记</string>
+			<key>PayloadIdentifier</key>
+			<string>com.axp.udid.service</string>
+			<key>PayloadOrganization</key>
+			<string>AXP</string>
+			<key>PayloadType</key>
+			<string>com.apple.mobile.profile_service</string>
+			<key>PayloadUUID</key>
+			<string>FE3E29F1-E885-46EA-9177-E28FE27CD37D</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>URL</key>
+			<string>http://192.168.1.112/udid</string>
+		</dict>
+	</array>
+	<key>PayloadDescription</key>
+	<string>用于获取本机 UDID，仅发送给授权服务器</string>
+	<key>PayloadDisplayName</key>
+	<string>AX Pro Max 设备登记</string>
+	<key>PayloadIdentifier</key>
+	<string>com.axp.udid</string>
+	<key>PayloadOrganization</key>
+	<string>AXP</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>88F0A0EC-01C3-4ED0-AF75-4D29DC0E7B63</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>

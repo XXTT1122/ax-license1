@@ -208,12 +208,82 @@ class Handler(BaseHTTPRequestHandler):
             return True
         return (self.headers.get("X-App-Key") or "") == APP_KEY
 
+    def _dump(self, tag: str, body: bytes = b"") -> None:
+        """把原始请求落到文件，便于分析 App 真实协议。"""
+        try:
+            import os as _os, time as _t
+            p = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "reqdump.log")
+            with open(p, "a", encoding="utf-8") as fp:
+                fp.write("=" * 70 + "\n")
+                fp.write(f"{_t.strftime('%Y-%m-%d %H:%M:%S')} [{tag}] {self.command} {self.path}\n")
+                for k, v in self.headers.items():
+                    fp.write(f"  {k}: {v}\n")
+                if body:
+                    fp.write("  --- body ---\n")
+                    fp.write("  " + body.decode("utf-8", "replace") + "\n")
+        except Exception:
+            pass
     def _ip(self) -> str:
         return (self.headers.get("X-Forwarded-For") or "").split(",")[0].strip() or \
             self.client_address[0]
 
     # ---------- 路由 ----------
     def do_GET(self):
+        self._dump("GET")
+        if self.path.split("?")[0] == "/ca-signed.mobileconfig":
+            import os as _o2
+            _h2 = _o2.path.dirname(_o2.path.abspath(__file__))
+            _f2 = _o2.path.join(_h2, "tls", "ca-signed.mobileconfig")
+            if _o2.path.exists(_f2):
+                _b2 = open(_f2, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/x-apple-aspen-config")
+                self.send_header("Content-Length", str(len(_b2)))
+                self.end_headers()
+                self.wfile.write(_b2)
+                return
+            return self._send(404, {"ok": False, "reason": "no_signed_profile"})
+        if self.path.split("?")[0] == "/udid.mobileconfig":
+            import os as _o3
+            _h3 = _o3.path.dirname(_o3.path.abspath(__file__))
+            _f3 = _o3.path.join(_h3, "tls", "udid.mobileconfig")
+            if _o3.path.exists(_f3):
+                _b3 = open(_f3, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/x-apple-aspen-config")
+                self.send_header("Content-Length", str(len(_b3)))
+                self.end_headers()
+                self.wfile.write(_b3)
+                return
+            return self._send(404, {"ok": False, "reason": "no_udid_profile"})
+        if self.path.split("?")[0] == "/ca.mobileconfig":
+            import os as _os
+            here = _os.path.dirname(_os.path.abspath(__file__))
+            fp = _os.path.join(here, "tls", "ca.mobileconfig")
+            if _os.path.exists(fp):
+                blob = open(fp, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/x-apple-aspen-config")
+                self.send_header("Content-Length", str(len(blob)))
+                self.end_headers()
+                self.wfile.write(blob)
+                return
+            return self._send(404, {"ok": False, "reason": "no_profile"})
+        if self.path.split("?")[0] in ("/ca.crt", "/ca.der"):
+            import os as _os
+            here = _os.path.dirname(_os.path.abspath(__file__))
+            fn = "ca.crt" if self.path.startswith("/ca.crt") else "ca.der"
+            fp = _os.path.join(here, "tls", fn)
+            if _os.path.exists(fp):
+                blob = open(fp, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/x-x509-ca-cert")
+                self.send_header("Content-Disposition", f'attachment; filename="{fn}"')
+                self.send_header("Content-Length", str(len(blob)))
+                self.end_headers()
+                self.wfile.write(blob)
+                return
+            return self._send(404, {"ok": False, "reason": "no_ca"})
         path = self.path.split("?")[0]
         if VERBOSE:
             sys.stderr.write(f"[GET] {self.path}\n")
@@ -244,14 +314,76 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(404, {"ok": False, "reason": "not_found"})
 
     def do_POST(self):
+        # ---- UDID 上报 ----
+        if self.path.split("?")[0] == "/udid":
+            try:
+                _n = int(self.headers.get("Content-Length") or 0)
+                _raw = self.rfile.read(_n) if _n else b""
+                _txt = _raw.decode("utf-8", "replace")
+                import re as _re, time as _t, os as _o4
+                def _g(k):
+                    _m = _re.search(r"<key>" + k + r"</key>\s*<string>([^<]+)</string>", _txt)
+                    return _m.group(1) if _m else ""
+                _udid = _g("UDID")
+                _imei = _g("IMEI")
+                _serial = _g("SERIAL")
+                _name = _g("DEVICE_NAME") or _g("PRODUCT")
+                _ver = _g("PRODUCT_VERSION")
+                _here = _o4.path.dirname(_o4.path.abspath(__file__))
+                with open(_o4.path.join(_here, "udid.log"), "a", encoding="utf-8") as _fp:
+                    _fp.write(f"{_t.strftime('%Y-%m-%d %H:%M:%S')}\t{self.client_address[0]}\t"
+                              f"UDID={_udid}\tIMEI={_imei}\tSN={_serial}\t{_name}\t{_ver}\n")
+                _html = ("<html><meta name='viewport' content='width=device-width'>"
+                          "<body style='font:16px -apple-system;padding:24px'>"
+                          "<h3>设备已登记</h3>"
+                          f"<p>UDID：<b>{_udid}</b></p>"
+                          f"<p>型号：{_name} {_ver}</p>"
+                          "<p style='color:#888'>把这段 UDID 发给卖家即可</p></body></html>")
+                _b = _html.encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(_b)))
+                self.end_headers()
+                self.wfile.write(_b)
+                return
+            except Exception:
+                return self._send(400, {"ok": False, "reason": "udid_parse"})
         path = self.path.split("?")[0]
         if VERBOSE:
             sys.stderr.write(f"[POST] {path}  hdrs={dict(self.headers)}\n")
             sys.stderr.flush()
+        self._dump("POST-BEGIN")
         try:
             body = self._body()
         except ValueError as exc:
             return self._send(400, {"ok": False, "reason": str(exc)})
+        # ---- 启动器 App 专用（纯 JSON，不套 AXNET 外壳）----
+        if path.startswith("/api/v1/launcher/"):
+            import json as _json
+            with store.LOCK:
+                if path.endswith("/query"):
+                    code_, obj_ = handle_query(body)
+                else:
+                    code_, obj_ = handle_verify(body, self._ip(),
+                                                self.headers.get("User-Agent", ""))
+            payload_ = obj_.get("payload") or obj_
+            out_ = {
+                "ok": bool(payload_.get("ok")),
+                "state": payload_.get("activationState") or payload_.get("status") or "locked",
+                "reason": payload_.get("reason") or "",
+                "expires_at": payload_.get("expires_at") or 0,
+                "device_id": payload_.get("device_id") or "",
+                "card_masked": payload_.get("card_masked") or "",
+                "server_time": int(time.time()),
+            }
+            blob = _json.dumps(out_, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(blob)))
+            self.end_headers()
+            self.wfile.write(blob)
+            return
+
         if not self._check_app_key():
             return self._send(403, {"ok": False, "reason": "app_key"})
         with store.LOCK:
