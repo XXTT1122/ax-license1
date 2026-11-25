@@ -52,7 +52,7 @@ static void hb_entry(void) {
         }
 
         [[NSNotificationCenter defaultCenter]
-            addObserverForName:UIApplicationDidFinishLaunchingNotification
+            addObserverForName:@"UIApplicationDidFinishLaunchingNotification"
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n) {
             P("[HB] 收到 didFinishLaunching");
