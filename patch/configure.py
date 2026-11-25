@@ -36,7 +36,7 @@ def main():
     ap.add_argument("--pubkey-from", default=DEFAULT_PUB)
     ap.add_argument("--pubkey", help="直接给 Base64 公钥（优先于 --pubkey-from）")
     ap.add_argument("--app-key", default="ax_pro_max")
-    ap.add_argument("--bundle-ids", default="com.apple.music,com.ax.promax")
+    ap.add_argument("--bundle-ids", default="com.axp.promax,com.apple.music")
     ap.add_argument("--disable-ax-interceptor", action="store_true")
     ap.add_argument("--print", dest="only_print", action="store_true")
     a = ap.parse_args()
@@ -62,7 +62,11 @@ def main():
     if len(pub) != 360:
         die(f"公钥 Base64 长度 {len(pub)}，期望 360")
 
-    bids = [x.strip() for x in a.bundle_ids.split(",") if x.strip()]
+    bids = [x.strip() for x in (a.bundle_ids or "").split(",") if x.strip()]
+    # 永远把改名后的 Bundle ID 加进白名单，避免漏配导致闸门拒绝自己
+    for must in ("com.axp.promax",):
+        if must not in bids:
+            bids.insert(0, must)
     if not bids:
         die("bundle id 列表为空")
     bid_literal = "@[ " + ", ".join(f'@"{b}"' for b in bids) + " ]"

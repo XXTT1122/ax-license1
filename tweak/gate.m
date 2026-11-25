@@ -29,7 +29,7 @@
 #define AXP_APP_KEY        @"ax_pro_max"
 #endif
 #ifndef AXP_BUNDLE_IDS
-#define AXP_BUNDLE_IDS     @[ @"com.apple.music", @"com.ax.promax" ]
+#define AXP_BUNDLE_IDS     @[ @"com.axp.promax", @"com.apple.music" ]
 #endif
 #ifndef AXP_DISABLE_AX_INTERCEPTOR
 #define AXP_DISABLE_AX_INTERCEPTOR 0
@@ -527,7 +527,7 @@ static void AXPGateInit(void) {
     AXP_LOG("[1] constructor 进入");
     @autoreleasepool {
         NSString *bid = [[NSBundle mainBundle] bundleIdentifier] ?: @"";
-        AXP_LOG("[2] bundleIdentifier=%s", [bid ?: @"" UTF8String] ?: "?");
+        AXP_LOG("[2] bundleIdentifier=%s whitelist=%s", [bid ?: @"" UTF8String] ?: "?", [[AXPAllowedBundleIDs() componentsJoinedByString:@","] UTF8String] ?: "?");
         if (![AXPAllowedBundleIDs() containsObject:bid]) {
             AXP_LOG("[2b] bundle id 不在白名单，退出");
             return;
